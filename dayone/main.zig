@@ -13,17 +13,16 @@ fn readLine(reader: std.fs.File.Reader, buffer: []u8) !?[]const u8 {
     }
 }
 
-pub fn main() !void {
-    const alloc = std.heap.page_allocator;
-    var listA = ArrayList(i32).init(alloc);
-    var listB = ArrayList(i32).init(alloc);
-
+fn loadData(listA: *ArrayList(i32), listB: *ArrayList(i32)) !void {
     const cwd = std.fs.cwd();
 
     const file = try cwd.openFile("data.txt", .{ .mode = .read_only });
     defer file.close();
+
     const reader = file.reader();
+
     var buffer: [100]u8 = undefined;
+
     var line = try readLine(reader, &buffer);
     while (line != null and line.?.len > 0) {
         var it = std.mem.tokenize(u8, line.?, " ");
@@ -35,6 +34,14 @@ pub fn main() !void {
         try listB.append(b);
         line = try readLine(reader, &buffer);
     }
+}
+
+pub fn main() !void {
+    const alloc = std.heap.page_allocator;
+    var listA = ArrayList(i32).init(alloc);
+    var listB = ArrayList(i32).init(alloc);
+
+    try loadData(&listA, &listB);
 
     const as = listA.items;
     const bs = listB.items;
@@ -47,5 +54,6 @@ pub fn main() !void {
     for (as, bs) |a, b| {
         total += @abs(a - b);
     }
+
     std.debug.print("\n\n{d}\n", .{total});
 }
