@@ -13,7 +13,7 @@ fn readLine(reader: std.fs.File.Reader, buffer: []u8) !?[]const u8 {
     }
 }
 
-fn loadData(listA: *ArrayList(i32), listB: *ArrayList(i32)) !void {
+fn loadData(left: *ArrayList(i32), right: *ArrayList(i32)) !void {
     const cwd = std.fs.cwd();
 
     const file = try cwd.openFile("data.txt", .{ .mode = .read_only });
@@ -30,29 +30,37 @@ fn loadData(listA: *ArrayList(i32), listB: *ArrayList(i32)) !void {
         const sb = it.next().?;
         const a = try std.fmt.parseInt(i32, sa, 10);
         const b = try std.fmt.parseInt(i32, sb, 10);
-        try listA.append(a);
-        try listB.append(b);
+        try left.append(a);
+        try right.append(b);
         line = try readLine(reader, &buffer);
     }
 }
 
+fn count(right: []i32, value: i32) i32 {
+    var c: i32 = 0;
+    for (right) |r| {
+        if (r == value) {
+            c += 1;
+        }
+    }
+    return c;
+}
+
 pub fn main() !void {
     const alloc = std.heap.page_allocator;
-    var listA = ArrayList(i32).init(alloc);
-    var listB = ArrayList(i32).init(alloc);
+    var leftList = ArrayList(i32).init(alloc);
+    var rightList = ArrayList(i32).init(alloc);
 
-    try loadData(&listA, &listB);
+    try loadData(&leftList, &rightList);
 
-    const as = listA.items;
-    const bs = listB.items;
+    const left = leftList.items;
+    const right = rightList.items;
 
-    std.mem.sort(i32, as, {}, comptime std.sort.asc(i32));
-    std.mem.sort(i32, bs, {}, comptime std.sort.asc(i32));
+    var total: i32 = 0;
 
-    var total: u32 = 0;
-
-    for (as, bs) |a, b| {
-        total += @abs(a - b);
+    for (left) |a| {
+        const c = count(right, a);
+        total += (a * c);
     }
 
     std.debug.print("\n\n{d}\n", .{total});
